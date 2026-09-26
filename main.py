@@ -1,6 +1,8 @@
 import random
 import string
 import sqlite3
+import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -10,13 +12,12 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 # --- CONFIGURATION ---
 TOKEN = "8736253817:AAHrecOjOfdgxxSl2xMQWwRWRKZt7rNReaU"
-ADMIN_ID = 8255824588          # Replace with your Telegram User ID
-AGENT_PHONE = "0995877887"    # Your Telebirr/CBE Agent Phone
-WEBAPP_URL = "https://keno-telegram-bot-zfvg.onrender.com" # We will update this after Render gives you a URL
+ADMIN_ID = 8255824588
+AGENT_PHONE = "0995877887"
+WEBAPP_URL = "https://keno-telegram-bot-zfvg.onrender.com/game"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
-app = FastAPI()
 
 DB_NAME = "keno_house.db"
 
@@ -249,6 +250,17 @@ async def refund_withdrawal(callback: types.CallbackQuery):
     await callback.message.edit_text(callback.message.text + "\n\n**STATUS: REFUNDED ❌**")
     await bot.send_message(int(user_id), f"⚠️ Your withdrawal request (`{ref_code}`) was canceled and {amount} ETB has been refunded.")
     await callback.answer("Refunded balance to user.")
+
+
+# --- LIFESPAN STARTUP FOR BOT POLLING ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    polling_task = asyncio.create_task(dp.start_polling(bot))
+    yield
+    polling_task.cancel()
+
+# Initialize FastAPI with the clean lifespan parameter
+app = FastAPI(lifespan=lifespan)
 
 
 # --- MINI APP FRONTEND ROUTE ---
