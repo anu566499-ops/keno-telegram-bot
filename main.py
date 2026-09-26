@@ -14,7 +14,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 TOKEN = "8736253817:AAHrecOjOfdgxxSl2xMQWwRWRKZt7rNReaU"
 ADMIN_ID = 8255824588
 AGENT_PHONE = "0995877887"
-WEBAPP_URL = "https://keno-telegram-bot-zfvg.onrender.com/game"
+WEBAPP_URL = "https://keno-telegram-bot-2.onrender.com/game"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
