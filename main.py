@@ -12,7 +12,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 TOKEN = "8736253817:AAHrecOjOfdgxxSl2xMQWwRWRKZt7rNReaU"
 ADMIN_ID = 8255824588          # Replace with your Telegram User ID
 AGENT_PHONE = "0995877887"    # Your Telebirr/CBE Agent Phone
-WEBAPP_URL = "https://your-app-name.onrender.com/game" # We will update this after Render gives you a URL
+WEBAPP_URL = "https://keno-telegram-bot-zfvg.onrender.com" # We will update this after Render gives you a URL
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
