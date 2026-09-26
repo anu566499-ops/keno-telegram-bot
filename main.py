@@ -259,7 +259,6 @@ async def lifespan(app: FastAPI):
     yield
     polling_task.cancel()
 
-# Initialize FastAPI with the clean lifespan parameter
 app = FastAPI(lifespan=lifespan)
 
 
@@ -272,33 +271,199 @@ def serve_game():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atlas-V Keno Replica</title>
+    <title>Atlas-V Keno Casino</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0b131e; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
-        .header { display: flex; justify-content: space-between; padding: 12px; background: #16222f; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
-        .keno-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; max-width: 450px; margin: 0 auto; }
-        .cell { background: #1c2b38; border: 1px solid #2e4053; border-radius: 4px; padding: 11px 0; font-size: 13px; font-weight: bold; cursor: pointer; user-select: none; }
-        .cell.selected { background: #f39c12; color: #000; border-color: #f1c40f; }
-        .cell.hit { background: #2ecc71 !important; color: #000; }
-        .cell.drawn { background: #3498db; color: #fff; }
-        .controls { margin-top: 15px; display: flex; gap: 10px; justify-content: center; align-items: center; }
-        button { background: #e74c3c; color: white; border: none; padding: 12px 25px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        input { padding: 10px; width: 70px; text-align: center; font-size: 15px; border-radius: 4px; border: 1px solid #2e4053; background: #16222f; color: #fff; }
+        :root {
+            --bg-color: #0b131e;
+            --panel-bg: #131c29;
+            --accent-gold: #f39c12;
+            --accent-green: #2ecc71;
+            --accent-blue: #3498db;
+            --text-main: #ffffff;
+            --text-muted: #8a9ba8;
+            --border-color: #213247;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            background: var(--panel-bg);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .main-layout {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .keno-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            flex: 3;
+            background: var(--panel-bg);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .cell {
+            background: #1c2b3c;
+            border: 1px solid #2a3f58;
+            border-radius: 4px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s ease;
+        }
+        .cell.selected {
+            background: var(--accent-gold);
+            color: #000;
+            border-color: #f1c40f;
+            transform: scale(1.05);
+        }
+        .cell.hit {
+            background: var(--accent-green) !important;
+            color: #000;
+            box-shadow: 0 0 8px var(--accent-green);
+        }
+        .cell.drawn {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+        .sidebar-payout {
+            flex: 1.2;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar-payout h4 {
+            margin: 0 0 5px 0;
+            text-align: center;
+            color: var(--accent-gold);
+            font-size: 12px;
+        }
+        .payout-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .controls-panel {
+            background: var(--panel-bg);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bet-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bet-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        input[type="number"] {
+            background: #0b131e;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px;
+            width: 70px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+        }
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        .action-btn:disabled {
+            background: #4a5568;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <span>Balance: <strong id="balance" style="color: #2ecc71;">0.00</strong> ETB</span>
-        <span>Selected: <strong id="count">0</strong>/10</span>
-    </div>
+    <div class="container">
+        <!-- Top Status Bar -->
+        <div class="header">
+            <span>Balance: <strong id="balance" style="color: var(--accent-green);">0.00</strong> ETB</span>
+            <span>Selected: <strong id="count">0</strong>/10</span>
+        </div>
 
-    <div class="keno-grid" id="grid"></div>
+        <!-- Main Grid & Multiplier Sidebar Layout -->
+        <div class="main-layout">
+            <div class="keno-grid" id="grid"></div>
+            
+            <div class="sidebar-payout">
+                <div>
+                    <h4>Multiplier</h4>
+                    <div id="payoutTableList">
+                        <div class="text-muted" style="text-align:center; padding:10px 0;">Pick numbers to view table</div>
+                    </div>
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); text-align:center; margin-top:5px;">Atlas-V Style</div>
+            </div>
+        </div>
 
-    <div class="controls">
-        <label>Bet: <input type="number" id="betAmount" value="10" min="1"></label>
-        <button onclick="playKeno()" id="playBtn">START DRAW</button>
+        <!-- Controls & Bet Panel -->
+        <div class="controls-panel">
+            <div class="bet-row">
+                <span>Bet Amount (ETB):</span>
+                <div class="bet-input-group">
+                    <button onclick="adjustBet(-5)" style="padding:6px 10px; background:#213247; color:#fff; border:none; border-radius:4px; cursor:pointer;">-</button>
+                    <input type="number" id="betAmount" value="10" min="1">
+                    <button onclick="adjustBet(5)" style="padding:6px 10px; background:#213247; color:#fff; border:none; border-radius:4px; cursor:pointer;">+</button>
+                </div>
+            </div>
+            <button class="action-btn" onclick="playKeno()" id="playBtn">START DRAW (20/80)</button>
+        </div>
     </div>
 
     <script>
@@ -308,6 +473,15 @@ def serve_game():
         const userId = tg.initDataUnsafe?.user?.id || 999999; 
         let selectedNumbers = new Set();
         const gridEl = document.getElementById('grid');
+
+        const multipliersRef = {
+            1: {1: 3.0},
+            2: {2: 9.0},
+            3: {2: 1.0, 3: 26.0},
+            4: {2: 2.0, 3: 5.0, 4: 70.0},
+            5: {3: 3.0, 4: 12.0, 5: 300.0},
+            10: {5: 2.0, 6: 15.0, 7: 50.0, 8: 200.0, 9: 1000.0, 10: 10000.0}
+        };
 
         for (let i = 1; i <= 80; i++) {
             const cell = document.createElement('div');
@@ -338,6 +512,33 @@ def serve_game():
                 el.classList.add('selected');
             }
             document.getElementById('count').innerText = selectedNumbers.size;
+            updatePayoutSidebar();
+        }
+
+        function adjustBet(amount) {
+            const input = document.getElementById('betAmount');
+            let val = parseInt(input.value) || 10;
+            val = Math.max(1, val + amount);
+            input.value = val;
+        }
+
+        function updatePayoutSidebar() {
+            const count = selectedNumbers.size;
+            const container = document.getElementById('payoutTableList');
+            if (count === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#8a9ba8; padding:10px 0;">Pick numbers</div>';
+                return;
+            }
+            const table = multipliersRef[count];
+            if (!table) {
+                container.innerHTML = '<div style="text-align:center; color:#8a9ba8; padding:10px 0;">Custom Pick</div>';
+                return;
+            }
+            let html = '';
+            for (let [hits, mult] of Object.entries(table)) {
+                html += `<div class="payout-row"><span>${hits} Hits:</span><strong style="color:var(--accent-gold);">${mult}x</strong></div>`;
+            }
+            container.innerHTML = html;
         }
 
         async function playKeno() {
@@ -372,7 +573,7 @@ def serve_game():
 
                 document.getElementById('balance').innerText = result.new_balance.toFixed(2);
                 if (result.payout > 0) {
-                    setTimeout(() => alert(`🎉 Won ${result.payout} ETB! (${result.hit_count} hits)`), 250);
+                    setTimeout(() => alert(`🎉 Congratulations! Won ${result.payout.toFixed(2)} ETB (${result.hit_count} hits)`), 300);
                 }
             } catch (err) {
                 alert("Error: " + err.message);
