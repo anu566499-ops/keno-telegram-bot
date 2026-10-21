@@ -1,0 +1,37 @@
+# Put this file and app.py at the repository root.
+# This declares paid resources; review the hosting charges before creating them.
+services:
+  - type: web
+    name: keno-telebirr-manual-review
+    runtime: python
+    plan: starter
+    numInstances: 1
+    autoDeploy: false
+    buildCommand: pip install -r requirements-tested.txt
+    startCommand: python render_start.py
+    healthCheckPath: /health
+    disk:
+      name: manual-review-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: EXPECTED_RECEIVER
+        value: 'Anwar'
+      - key: MIN_DEPOSIT_ETB
+        value: '20.00'
+      - key: MIN_WITHDRAWAL_ETB
+        value: '200.00'
+      - key: MAX_WITHDRAWAL_ETB
+        value: '30000.00'
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: MERCHANT_PAYMENT_REFERENCE
+        value: '+251995877887'
+      - key: REVIEW_TARGET_MINUTES
+        value: '2'
+      - key: MERCHANT_INSTRUCTIONS
+        value: 'Submit the receipt number for manual review. Testing only: do not send real money. Approval is not guaranteed.'
+      - key: DB_PATH
+        value: /var/data/reviews.sqlite3
